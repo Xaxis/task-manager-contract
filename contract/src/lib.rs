@@ -70,10 +70,14 @@ impl TaskManager {
     pub fn assign_task(&mut self, task_id: u64, user_account: String) {
         assert!(self.task_queue.contains(&task_id), "Task not in queue");
         let mut task = self.tasks.get(&task_id).unwrap();
-        task.assigned_to = Some(user_account.clone());
-        task.assigned_at = Some(env::block_timestamp());
-        self.tasks.insert(&task_id, &task);
-        self.task_queue.remove(self.task_queue.iter().position(|x| *x == task_id).unwrap());
+        if task.assigned_to.is_none() {
+            task.assigned_to = Some(user_account.clone());
+            task.assigned_at = Some(env::block_timestamp());
+            self.tasks.insert(&task_id, &task);
+            self.task_queue.remove(self.task_queue.iter().position(|x| *x == task_id).unwrap());
+        } else {
+            assert_eq!(task.assigned_to, Some(user_account), "Task already assigned to another user");
+        }
     }
 
     // Method to submit a task for review
